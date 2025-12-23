@@ -1,0 +1,25 @@
+/* components/UserDetail/styles.css */
+
+/* Đảm bảo nội dung chính có đủ khoảng đệm và độ rộng */
+.user-detail-container {
+    padding: 20px;
+}
+
+/* Thêm khoảng cách cho các tiêu đề phụ */
+.user-detail-heading {
+    margin-bottom: 10px;
+    color: #3f51b5; /* Màu Material-UI primary */
+}
+
+/* Kiểu cho nhãn (labels) trong chi tiết người dùng */
+.user-detail-label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* Đảm bảo liên kết nút bấm có khoảng cách với nội dung phía trên */
+.photos-link-button {
+    margin-top: 15px;
+}
+
+/* Bạn có thể thêm bất kỳ style nào khác để làm đẹp giao diện */

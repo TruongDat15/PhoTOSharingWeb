@@ -1,0 +1,19 @@
+# Node modules
+.idea/
+.vscode/
+# IDE
+
+build/
+# Build outputs
+
+.DS_Store
+# MacOS
+
+npm-debug.log*
+# Logs
+
+.env
+# Env files
+
+node_modules/
+
