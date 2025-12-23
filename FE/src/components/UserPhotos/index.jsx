@@ -16,6 +16,7 @@ import {
 import "./styles.css";
 import fetchModel from "../../lib/fetchModelData";
 import { AuthContext } from '../../AuthContext';
+import API_BASE from '../../config';
 
 // Hàm tiện ích để định dạng ngày tháng thân thiện hơn (Yêu cầu của Lab)
 const formatDateTime = (dateTimeString) => {
@@ -106,7 +107,7 @@ function UserPhotos () {
       setCommentError(prev => ({ ...prev, [photoId]: null }));
 
       try {
-        const base = process.env.REACT_APP_API_BASE || '';
+        const base = API_BASE || '';
         const res = await fetch(`${base}/api/comment`, {
           method: 'POST',
           credentials: 'include',
@@ -167,7 +168,7 @@ function UserPhotos () {
                             {/* Hiển thị Ảnh */}
                             <CardMedia
                                 component="img"
-                                image={`http://localhost:5000/images/${photo.file_name}` || `/images/${photo.file_name}`}
+                                image={(API_BASE ? `${API_BASE}/images/${photo.file_name}` : `/images/${photo.file_name}`)}
                                 alt={`Ảnh của ${userName}`}
                                 style={{ maxHeight: '500px', objectFit: 'contain' }}
                             />
@@ -240,4 +241,3 @@ function UserPhotos () {
 }
 
 export default UserPhotos;
-

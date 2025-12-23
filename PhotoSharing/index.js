@@ -10,16 +10,22 @@ const AdminRouter = require("./routes/AdminRouter");
 
 dbConnect();
 
-app.use(cors({ origin: true, credentials: true }));
+// Allow configuring client origin via env (useful on CodeSandbox). Fallback to true for dev.
+const clientOrigin = process.env.CLIENT_ORIGIN || true;
+app.use(cors({ origin: clientOrigin, credentials: true }));
 app.use(express.json());
+
+// Session cookie options for cross-site contexts (CodeSandbox uses different origins):
+const cookieSecure = process.env.SESSION_COOKIE_SECURE === 'true';
+// If secure (HTTPS) use 'none' (for cross-site). If not secure (local HTTP), use 'lax' to avoid browser rejecting cookie.
+const cookieSameSite = cookieSecure ? (process.env.SESSION_COOKIE_SAME_SITE || 'none') : (process.env.SESSION_COOKIE_SAME_SITE || 'lax');
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change_this_secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000,
-        secure: false,
-        sameSite: 'none'},
+    cookie: { maxAge: 24 * 60 * 60 * 1000, httpOnly: true, secure: cookieSecure, sameSite: cookieSameSite },
   })
 );
 app.use("/api/user", UserRouter);
@@ -33,7 +39,8 @@ app.get("/", (request, response) => {
 
 app.use("/images", express.static("images"));
 
-
-app.listen(5000, () => {
-  console.log("server listening on port 5000");
+const port = process.env.PORT || 5000;
+app.listen(port, () => {
+  console.log(`server listening on port ${port}`);
+  console.log(`SESSION_COOKIE_SECURE=${cookieSecure}, SESSION_COOKIE_SAME_SITE=${cookieSameSite}, CORS origin=${clientOrigin}`);
 });

@@ -1,3 +1,5 @@
+import API_BASE from '../config';
+
 /**
  * fetchModel - Fetch a model from the web server.
  *
@@ -5,10 +7,10 @@
  *
  */
 function fetchModel(url) {
+  const base = API_BASE || "";
   // Build full URL: allow absolute URLs or relative paths prefixed by a base.
   // Use relative paths by default so CRA dev server proxy can forward requests to backend.
   // Set REACT_APP_API_BASE to an absolute URL only if you need cross-origin requests.
-  const base = process.env.REACT_APP_API_BASE || "";
   const fullUrl = url && (url.startsWith("http://") || url.startsWith("https://"))
     ? url
     : `${base}${url && url.startsWith("/") ? "" : "/"}${url || ""}`;

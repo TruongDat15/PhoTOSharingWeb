@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import fetchModel from './lib/fetchModelData';
+import API_BASE from './config';
 
 export const AuthContext = createContext({ user: null });
 
@@ -16,16 +17,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (login_name, password) => {
-    const base = process.env.REACT_APP_API_BASE || '';
-    const res = await fetch(`${base}/admin/login`, {
+    const res = await fetch(`${API_BASE}/admin/login`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ login_name, password }),
     });
     if (!res.ok) {
-      const t = await res.text();
-      throw new Error(t || 'Login failed');
+      const text = await res.text();
+      throw new Error(text || 'Login failed');
     }
     const data = await res.json();
     setUser(data);
@@ -33,11 +33,13 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    const base = process.env.REACT_APP_API_BASE || '';
-    const res = await fetch(`${base}/admin/logout`, { method: 'POST', credentials: 'include' });
+    const res = await fetch(`${API_BASE}/admin/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
     if (!res.ok) {
-      const t = await res.text();
-      throw new Error(t || 'Logout failed');
+      const text = await res.text();
+      throw new Error(text || 'Logout failed');
     }
     setUser(null);
   };
