@@ -13,16 +13,22 @@ router.use(requireLogin);
 // body: { photo_id, user_id, comment }
 router.post("/", async (req, res) => {
   try {
-    const { photo_id, user_id, comment } = req.body || {};
-    if (!photo_id || !user_id || !comment) {
-      return res.status(400).json({ message: "photo_id, user_id and comment are required" });
+    // Do not trust client-supplied user_id. Use logged-in user from session.
+    const sessionUser = req.session && req.session.user;
+    if (!sessionUser || !sessionUser._id) return res.status(401).json({ message: 'Unauthorized' });
+
+    const { photo_id, comment } = req.body || {};
+    const user_id = sessionUser._id;
+
+    // Validate inputs
+    if (!photo_id || !comment) {
+      return res.status(400).json({ message: "photo_id and comment are required" });
     }
+    const trimmed = (typeof comment === 'string') ? comment.trim() : '';
+    if (!trimmed) return res.status(400).json({ message: "Empty comment not allowed" });
 
     if (!mongoose.Types.ObjectId.isValid(photo_id)) {
       return res.status(400).json({ message: "Invalid photo_id" });
-    }
-    if (!mongoose.Types.ObjectId.isValid(user_id)) {
-      return res.status(400).json({ message: "Invalid user_id" });
     }
 
     const [photo, user] = await Promise.all([
@@ -33,8 +39,8 @@ router.post("/", async (req, res) => {
     if (!photo) return res.status(400).json({ message: "Photo not found" });
     if (!user) return res.status(400).json({ message: "User not found" });
 
-    // push new comment
-    photo.comments.push({ comment: comment, user_id: user_id });
+    // push new comment (store user_id from session)
+    photo.comments.push({ comment: trimmed, user_id: user_id });
     await photo.save();
 
     const newComment = photo.comments[photo.comments.length - 1];
