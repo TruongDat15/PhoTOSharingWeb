@@ -8,4 +8,5 @@ const userSchema = new mongoose.Schema({
   occupation: { type: String },
 });
 
-module.exports = mongoose.model.Users || mongoose.model("Users", userSchema);
+// Export the model using the singular name and check mongoose.models first
+module.exports = mongoose.models.User || mongoose.model("User", userSchema);

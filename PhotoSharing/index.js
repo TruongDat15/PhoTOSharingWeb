@@ -18,6 +18,9 @@ app.get("/", (request, response) => {
   response.send({ message: "Hello from photo-sharing app API!" });
 });
 
+app.use("/images", express.static("images"));
+
+
 app.listen(5000, () => {
   console.log("server listening on port 5000");
 });

@@ -12,20 +12,26 @@ const versionString = "1.0";
 async function dbLoad() {
   try {
     await mongoose.connect(process.env.DB_URL);
-    console.log("Successfully connected to MongoDB Atlas!");
+    console.log("Successfully connected to MongoDB!");
   } catch (error) {
-    console.log("Unable connecting to MongoDB Atlas!");
+    console.error("Unable connecting to MongoDB!", error);
+    return;
   }
 
-  await User.deleteMany({});
-  await Photo.deleteMany({});
-  await SchemaInfo.deleteMany({});
+  try {
+    await User.deleteMany({});
+    await Photo.deleteMany({});
+    await SchemaInfo.deleteMany({});
+  } catch (err) {
+    console.error("Error clearing collections", err);
+  }
 
   const userModels = models.userListModel();
   const mapFakeId2RealId = {};
   for (const user of userModels) {
-    userObj = new User({
-      first: user.first_name,
+    // use local const for created document
+    const userObj = new User({
+      first_name: user.first_name,
       last_name: user.last_name,
       location: user.location,
       description: user.description,
@@ -33,11 +39,11 @@ async function dbLoad() {
     });
     try {
       await userObj.save();
-      mapFakeId2RealId[user._id] = userObj._id;
+      if (user._id) mapFakeId2RealId[user._id] = userObj._id;
       user.objectID = userObj._id;
       console.log(
         "Adding user:",
-        user.first_name + " " + user.last_name,
+        (user.first_name || "") + " " + (user.last_name || ""),
         " with ID ",
         user.objectID,
       );
@@ -45,35 +51,43 @@ async function dbLoad() {
       console.error("Error create user", error);
     }
   }
+
   const photoModels = [];
   const userIDs = Object.keys(mapFakeId2RealId);
   userIDs.forEach(function (id) {
     photoModels.push(...models.photoOfUserModel(id));
   });
+
   for (const photo of photoModels) {
-    photoObj = await Photo.create({
+    // create photo with mapped user id (if exists)
+    const photoObj = await Photo.create({
       file_name: photo.file_name,
       date_time: photo.date_time,
-      user_id: mapFakeId2RealId[photo.user_id],
+      user_id: mapFakeId2RealId[photo.user_id] || null,
+      comments: [],
     });
     photo.objectID = photoObj._id;
-    if (photo.comments) {
-      photo.comments.forEach(function (comment) {
+
+    if (photo.comments && Array.isArray(photo.comments)) {
+      for (const comment of photo.comments) {
+        // find mapped user id for comment author; fall back to comment.user.objectID
+        const commentUserId = (comment.user && (mapFakeId2RealId[comment.user._id] || comment.user.objectID)) || null;
         photoObj.comments = photoObj.comments.concat([
           {
             comment: comment.comment,
             date_time: comment.date_time,
-            user_id: comment.user.objectID,
+            user_id: commentUserId,
           },
         ]);
         console.log(
           "Adding comment of length %d by user %s to photo %s",
-          comment.comment.length,
-          comment.user.objectID,
+          (comment.comment || "").length,
+          commentUserId,
           photo.file_name,
         );
-      });
+      }
     }
+
     try {
       await photoObj.save();
       console.log(
@@ -88,14 +102,20 @@ async function dbLoad() {
   }
 
   try {
-    schemaInfo = await SchemaInfo.create({
+    const schemaInfo = await SchemaInfo.create({
       version: versionString,
     });
     console.log("SchemaInfo object created with version ", schemaInfo.version);
   } catch (error) {
-    console.error("Error create schemaInfo", reportError);
+    console.error("Error create schemaInfo", error);
   }
-  mongoose.disconnect();
+
+  try {
+    await mongoose.disconnect();
+    console.log("Disconnected from MongoDB");
+  } catch (err) {
+    console.error("Error disconnecting from MongoDB", err);
+  }
 }
 
 dbLoad();
