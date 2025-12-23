@@ -1,21 +1,29 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const User = require("../db/userModel");
+const requireLogin = require("../middleware/auth");
 const router = express.Router();
 
 // POST /api/user
-// body: { first_name, last_name, location?, description?, occupation? }
+// body: { login_name, password, first_name, last_name, location?, description?, occupation? }
 router.post("/", async (request, response) => {
   try {
-    const { first_name, last_name, location, description, occupation } = request.body || {};
+    const { login_name, password, first_name, last_name, location, description, occupation } = request.body || {};
+    if (!login_name) return response.status(400).json({ message: "login_name is required" });
+    if (!password) return response.status(400).json({ message: "password is required" });
     if (!first_name || !last_name) {
       return response.status(400).json({ message: "first_name and last_name are required" });
     }
-    const user = new User({ first_name, last_name, location, description, occupation });
+    // check login_name not exists
+    const exist = await User.findOne({ login_name }).exec();
+    if (exist) return response.status(400).json({ message: "login_name already exists" });
+
+    const user = new User({ login_name, password, first_name, last_name, location, description, occupation });
     const saved = await user.save();
     // return only the fields the client should see
     response.json({
       _id: saved._id,
+      login_name: saved.login_name,
       first_name: saved.first_name,
       last_name: saved.last_name,
       location: saved.location,
@@ -26,6 +34,9 @@ router.post("/", async (request, response) => {
     response.status(500).json({ message: err.toString() });
   }
 });
+
+// Apply login requirement for remaining routes
+router.use(requireLogin);
 
 // GET /api/user
 // returns list of users for sidebar: [{ _id, first_name, last_name }, ...]

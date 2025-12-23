@@ -30,12 +30,16 @@ async function dbLoad() {
   const mapFakeId2RealId = {};
   for (const user of userModels) {
     // use local const for created document
+    const generatedLogin = user.login_name || (user.first_name ? (user.first_name.toLowerCase() + user.last_name.toLowerCase().slice(0,1)) : null);
+    const generatedPassword = user.password || "password"; // default password for seeded users
     const userObj = new User({
       first_name: user.first_name,
       last_name: user.last_name,
       location: user.location,
       description: user.description,
       occupation: user.occupation,
+      login_name: generatedLogin,
+      password: generatedPassword,
     });
     try {
       await userObj.save();

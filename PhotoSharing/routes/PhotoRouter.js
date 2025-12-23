@@ -2,7 +2,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Photo = require("../db/photoModel");
 const User = require("../db/userModel");
+const requireLogin = require("../middleware/auth");
 const router = express.Router();
+
+// Protect all routes in this router
+router.use(requireLogin);
 
 // POST /api/photo
 // body: { file_name, user_id }

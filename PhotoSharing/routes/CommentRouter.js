@@ -3,7 +3,11 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Photo = require("../db/photoModel");
 const User = require("../db/userModel");
+const requireLogin = require("../middleware/auth");
 const router = express.Router();
+
+// Protect routes in this router
+router.use(requireLogin);
 
 // POST /api/comment
 // body: { photo_id, user_id, comment }
@@ -46,4 +50,3 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
-

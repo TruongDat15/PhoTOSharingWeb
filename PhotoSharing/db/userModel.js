@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema({
   location: { type: String },
   description: { type: String },
   occupation: { type: String },
+  login_name: { type: String, unique: true, sparse: true },
+  password: { type: String },
 });
 
 // Export the model using the singular name and check mongoose.models first
