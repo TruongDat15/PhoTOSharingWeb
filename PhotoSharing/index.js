@@ -10,14 +10,16 @@ const AdminRouter = require("./routes/AdminRouter");
 
 dbConnect();
 
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change_this_secret",
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 },
+    cookie: { maxAge: 24 * 60 * 60 * 1000,
+        secure: false,
+        sameSite: 'none'},
   })
 );
 app.use("/api/user", UserRouter);
